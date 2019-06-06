@@ -10,6 +10,7 @@ class Person(db.Model):
     birthday = db.Column(db.String(8), unique=True, nullable=False)
     gender = db.Column(db.String(10), unique=True, nullable=False)
 
+
     def __repr__(self):
         return '<Person %r>' % self.username
 
