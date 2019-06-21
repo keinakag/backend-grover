@@ -8,10 +8,16 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from models import db, Person
+from flask_jwt_simple import (
+    JWTManager, jwt_required, create_jwt, get_jwt_identity
+)
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'fkjhhef45367shujljewrfhulierfhuliewrfhggkjhktjdfukg56789'
+jwt = JWTManager(app)
 MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
@@ -53,6 +59,30 @@ def handle_person():
         return jsonify(all_people), 200
 
     return "Invalid Method", 404
+
+# Provide a method to create access tokens. The create_jwt()
+# function is used to actually generate the token
+@app.route('/login', methods=['POST'])
+def login():
+    if not request.is_json:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+
+    params = request.get_json()
+    username = params.get('username', None)
+    password = params.get('password', None)
+
+    if not username:
+        return jsonify({"msg": "Missing username parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
+
+    if username != 'test' or password != 'test':
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    # Identity can be any data that is json serializable
+    ret = {'jwt': create_jwt(identity=username)}
+    return jsonify(ret), 200
+
 
 
 @app.route('/person/<int:person_id>', methods=['PUT', 'GET', 'DELETE'])
